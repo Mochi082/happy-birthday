@@ -799,20 +799,33 @@
         };
       } else {
         // index.html を直接開いたときなど、先読みできなかった場合
+        // （iPhone は a.volume を変えられないので、公開サイトでは WebAudio を通して音量を調整する）
         const a = new Audio(files[name]);
         a.loop = true;
-        a.volume = Math.min(volume, 1);
+        let g = null;
+        if (location.protocol !== "file:") {
+          try {
+            g = c.createGain();
+            g.gain.setValueAtTime(0.0001, c.currentTime);
+            g.gain.exponentialRampToValueAtTime(Math.max(volume, 0.0001), c.currentTime + 1);
+            c.createMediaElementSource(a).connect(g).connect(c.destination);
+          } catch {
+            g = null;
+          }
+        }
+        if (!g) a.volume = Math.min(volume, 1);
         a.play().catch(() => {});
         loop.stop = () => {
-          const id = setInterval(() => {
-            const v = a.volume - 0.05;
-            if (v <= 0) {
-              a.pause();
-              clearInterval(id);
-            } else {
-              a.volume = v;
-            }
-          }, 40);
+          if (g) {
+            const t = c.currentTime;
+            g.gain.cancelScheduledValues(t);
+            g.gain.setValueAtTime(Math.max(g.gain.value, 0.0001), t);
+            g.gain.exponentialRampToValueAtTime(0.0001, t + 0.8);
+          } else {
+            try { a.volume = Math.min(volume, 1) / 3; } catch {}
+          }
+          // 音量が変えられない端末でも、必ず止める
+          setTimeout(() => a.pause(), 900);
         };
       }
     }
