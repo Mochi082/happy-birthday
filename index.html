@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#17122b">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Happy Birthday</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="is-locked">
+
+  <!-- オープニング -->
+  <section class="opening" id="opening">
+    <div class="gate" id="gate">
+      <button class="candle" id="candle" type="button" aria-label="ろうそくを吹き消す">
+        <span class="candle__flame"></span>
+        <span class="candle__smoke"></span>
+        <span class="candle__wick"></span>
+        <span class="candle__body"></span>
+      </button>
+    </div>
+
+    <div class="hero">
+      <p class="hero__en" id="heroEn"></p>
+      <h1 class="hero__name fu" style="--d:1.6s" data-bind="name"></h1>
+      <p class="hero__age fu" style="--d:2s" id="heroAge"></p>
+      <p class="hero__msg fu" style="--d:2.6s" data-bind="openingMessage"></p>
+    </div>
+
+    <a class="scroll-hint fu" style="--d:3.4s" href="#profile">scroll</a>
+  </section>
+
+  <main>
+    <!-- プロフィール -->
+    <section class="section" id="profile">
+      <h2 class="section__title"><span>Profile</span>プロフィール</h2>
+      <div class="profile reveal">
+        <div class="profile__photo" id="profilePhoto"></div>
+        <p class="profile__name" data-bind="name"></p>
+        <p class="profile__birthday" id="profileBirthday"></p>
+        <p class="profile__catch" data-bind="profile.catchphrase"></p>
+        <dl class="profile__list" id="profileList"></dl>
+      </div>
+    </section>
+
+    <!-- スライドショー -->
+    <section class="section" id="memories">
+      <h2 class="section__title"><span>Memories</span>思い出</h2>
+      <div class="slider reveal">
+        <div class="slider__view">
+          <div class="slider__track" id="sliderTrack"></div>        </div>
+        <div class="slider__meta">
+          <div class="slider__bar"><span id="sliderBar"></span></div>
+          <span class="slider__count" id="sliderCount"></span>
+        </div>
+        <p class="slider__hint">スワイプで次へ・タップで拡大</p>
+      </div>
+    </section>
+
+    <!-- メッセージ -->
+    <section class="section" id="messages">
+      <h2 class="section__title"><span>Messages</span>メッセージ</h2>
+      <div class="messages" id="messageList"></div>
+    </section>
+
+    <!-- 締め -->
+    <section class="section finale">
+      <p class="finale__text reveal" data-bind="closing"></p>
+      <button class="btn" id="celebrate" type="button">🎉</button>
+    </section>
+  </main>
+
+  <div class="lightbox" id="lightbox" hidden>
+    <img alt="">
+    <p></p>
+  </div>
+
+  <canvas class="confetti" id="confetti"></canvas>
+  <button class="bgm-toggle" id="bgmToggle" type="button" aria-label="BGMのオン/オフ" hidden>♪</button>
+  <audio id="bgm" loop preload="none"></audio>
+
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
