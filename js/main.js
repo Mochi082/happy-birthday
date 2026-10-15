@@ -550,13 +550,14 @@
   const sfx = (() => {
     const files = S.sounds || {};
     const raw = {}; // 差し替え用ファイル（ArrayBuffer）
+    const loading = {}; // 先読み中のもの（読み込みが終わるのを待てるように）
     const decoded = {};
     let ctx = null;
 
     // 指定ファイルは先に読み込んでおく（読めなければ合成音を使う）
     Object.entries(files).forEach(([name, src]) => {
       if (!src || S.sound === false) return;
-      fetch(src)
+      loading[name] = fetch(src)
         .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject()))
         .then((buf) => (raw[name] = buf))
         .catch(() => {});
@@ -761,7 +762,8 @@
       return Math.max(Number(v ?? 1) || 0, 0);
     };
 
-    async function decode(c, name) {
+    async function decode(c, name, waitLoad = false) {
+      if (waitLoad && loading[name]) await loading[name]; // 読み込み中なら終わるまで待つ
       if (raw[name] && !decoded[name]) {
         try {
           decoded[name] = await c.decodeAudioData(raw[name].slice(0));
@@ -778,7 +780,7 @@
       const c = unlock();
       if (!c || !files[name] || loops[name]) return;
       const loop = (loops[name] = { stopped: false, stop() { this.stopped = true; } });
-      const buf = await decode(c, name);
+      const buf = await decode(c, name, true); // 読み込み中なら終わってから鳴らす
       if (loop.stopped) return;
 
       if (buf) {
@@ -798,34 +800,14 @@
           src.stop(t + 0.9);
         };
       } else {
-        // index.html を直接開いたときなど、先読みできなかった場合
-        // （iPhone は a.volume を変えられないので、公開サイトでは WebAudio を通して音量を調整する）
+        // index.html を直接開いたときなど、先読みできなかった場合（PC での確認用）
         const a = new Audio(files[name]);
         a.loop = true;
-        let g = null;
-        if (location.protocol !== "file:") {
-          try {
-            g = c.createGain();
-            g.gain.setValueAtTime(0.0001, c.currentTime);
-            g.gain.exponentialRampToValueAtTime(Math.max(volume, 0.0001), c.currentTime + 1);
-            c.createMediaElementSource(a).connect(g).connect(c.destination);
-          } catch {
-            g = null;
-          }
-        }
-        if (!g) a.volume = Math.min(volume, 1);
+        a.volume = Math.min(volume, 1);
         a.play().catch(() => {});
         loop.stop = () => {
-          if (g) {
-            const t = c.currentTime;
-            g.gain.cancelScheduledValues(t);
-            g.gain.setValueAtTime(Math.max(g.gain.value, 0.0001), t);
-            g.gain.exponentialRampToValueAtTime(0.0001, t + 0.8);
-          } else {
-            try { a.volume = Math.min(volume, 1) / 3; } catch {}
-          }
-          // 音量が変えられない端末でも、必ず止める
-          setTimeout(() => a.pause(), 900);
+          try { a.volume = Math.min(volume, 1) / 3; } catch {}
+          setTimeout(() => a.pause(), 900); // 必ず止める
         };
       }
     }
