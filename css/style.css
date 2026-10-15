@@ -207,6 +207,8 @@ body.is-open .hero__en .ch {
   animation: flowIn 1.6s cubic-bezier(.25, .6, .3, 1) forwards;
   animation-delay: calc(.4s + var(--i) * .13s);
 }
+/* 現れ終わった文字はぼかしごと外す（iPhone の Safari でぼかしが残ることがあるため） */
+body.is-open .hero__en .ch.is-done { animation: none; opacity: 1; filter: none; transform: none; }
 .hero__name {
   margin-top: .3em;
   font-size: clamp(1.8rem, min(11vw, 6.5vh), 3.4rem);
@@ -450,7 +452,7 @@ body.is-ready .scroll-hint { animation: fadeUp .9s ease .8s forwards; pointer-ev
   100% { opacity: 1; transform: none; }
 }
 @keyframes flowIn {
-  to { opacity: 1; filter: blur(0); transform: none; }
+  to { opacity: 1; filter: none; transform: none; }
 }
 @keyframes flash { 0% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes candleOn { from { opacity: .15; } to { opacity: 1; } }

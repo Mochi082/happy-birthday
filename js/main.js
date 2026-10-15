@@ -860,6 +860,8 @@
     });
     heroEn.appendChild(w);
   });
+  // 現れ終わった文字に印を付けて、ぼかしの設定を外す
+  heroEn.addEventListener("animationend", (e) => e.target.classList.add("is-done"));
 
   const ageEl = $("#heroAge");
   if (S.showAge !== false && age > 0) {
