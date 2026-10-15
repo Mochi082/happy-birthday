@@ -674,38 +674,51 @@
       return at(22) - t + 2.4; // 最後の音が鳴り終わるまで
     }
 
-    // ワープ：上がっていく風切り音＋うなり
+    // ワープ：しゅいーーーん（風切り音＋上がっていく高い音）
     const WARP_SEC = 2.4;
     function synthWarp(c, t, out, dur = WARP_SEC) {
+      const end = t + dur;
+      // 「しゅ」：明るい風切り音。高い方へ駆け上がる
       const src = c.createBufferSource();
-      src.buffer = noiseBuffer(c, dur);
+      src.buffer = noiseBuffer(c, dur + 0.5);
       const f = c.createBiquadFilter();
       f.type = "bandpass";
-      f.Q.value = 2;
-      f.frequency.setValueAtTime(200, t);
-      f.frequency.exponentialRampToValueAtTime(4000, t + dur);
+      f.Q.value = 1.1; // 帯域を広めにして空気感を出す
+      f.frequency.setValueAtTime(800, t);
+      f.frequency.exponentialRampToValueAtTime(7000, end);
       const g = c.createGain();
       g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.5, t + dur * 0.95);
-      g.gain.exponentialRampToValueAtTime(0.001, t + dur + 0.3);
+      g.gain.exponentialRampToValueAtTime(0.5, t + 0.15); // しゅ
+      g.gain.exponentialRampToValueAtTime(0.3, t + dur * 0.4);
+      g.gain.exponentialRampToValueAtTime(0.75, end - 0.1);
+      g.gain.exponentialRampToValueAtTime(0.001, end + 0.4);
       src.connect(f).connect(g).connect(out);
       src.start(t);
-      src.stop(t + dur + 0.3);
+      src.stop(end + 0.5);
 
-      const o = c.createOscillator();
-      o.type = "sawtooth";
-      o.frequency.setValueAtTime(60, t);
-      o.frequency.exponentialRampToValueAtTime(600, t + dur);
-      const lp = c.createBiquadFilter();
-      lp.type = "lowpass";
-      lp.frequency.value = 900;
-      const og = c.createGain();
-      og.gain.setValueAtTime(0.0001, t);
-      og.gain.exponentialRampToValueAtTime(0.12, t + dur * 0.9);
-      og.gain.exponentialRampToValueAtTime(0.001, t + dur + 0.2);
-      o.connect(lp).connect(og).connect(out);
-      o.start(t);
-      o.stop(t + dur + 0.25);
+      // 「いーーーん」：うっすら上がっていく高い音（風切り音の下に隠れる程度）
+      const lfo = c.createOscillator();
+      lfo.frequency.value = 7;
+      const lfoGain = c.createGain();
+      lfoGain.gain.value = 18; // ±18 セント
+      lfo.connect(lfoGain);
+      [["triangle", 1, 0.015], ["sine", 2.003, 0.005]].forEach(([type, mul, vol]) => {
+        const o = c.createOscillator();
+        o.type = type;
+        o.frequency.setValueAtTime(260 * mul, t);
+        o.frequency.exponentialRampToValueAtTime(1900 * mul, end);
+        lfoGain.connect(o.detune);
+        const og = c.createGain();
+        og.gain.setValueAtTime(0.0001, t);
+        og.gain.exponentialRampToValueAtTime(vol * 0.5, t + 0.3);
+        og.gain.exponentialRampToValueAtTime(vol, end - 0.15);
+        og.gain.exponentialRampToValueAtTime(0.0005, end + 0.6); // ん…
+        o.connect(og).connect(out);
+        o.start(t);
+        o.stop(end + 0.65);
+      });
+      lfo.start(t);
+      lfo.stop(end + 0.65);
     }
 
     const synth = { blow: synthBlow, pop: synthPop, song: synthSong, warp: synthWarp };
