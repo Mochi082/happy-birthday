@@ -197,18 +197,21 @@ body.is-open .hero { opacity: 1; pointer-events: auto; }
 }
 .hero__en .word { display: inline-block; white-space: nowrap; }
 /* 左から1文字ずつ、ぼかしが解けながらゆっくり流れるように現れる */
+/* 左から1文字ずつ、白い光がにじんだ状態からくっきり浮かび上がる
+   （ぼかし filter は iPhone の Safari でぼやけが残ることがあるので、文字の影で表現する） */
 .hero__en .ch {
   display: inline-block;
   opacity: 0;
-  filter: blur(10px);
+  color: transparent;
+  text-shadow: 0 0 14px rgba(255, 255, 255, .9);
   transform: translate(-14px, 6px);
 }
 body.is-open .hero__en .ch {
   animation: flowIn 1.6s cubic-bezier(.25, .6, .3, 1) forwards;
   animation-delay: calc(.4s + var(--i) * .13s);
 }
-/* 現れ終わった文字はぼかしごと外す（iPhone の Safari でぼかしが残ることがあるため） */
-body.is-open .hero__en .ch.is-done { animation: none; opacity: 1; filter: none; transform: none; }
+/* 現れ終わった文字は動きを外して、ふつうの文字として表示する */
+body.is-open .hero__en .ch.is-done { animation: none; opacity: 1; color: #fff; text-shadow: inherit; transform: none; }
 .hero__name {
   margin-top: .3em;
   font-size: clamp(1.8rem, min(11vw, 6.5vh), 3.4rem);
@@ -452,7 +455,8 @@ body.is-ready .scroll-hint { animation: fadeUp .9s ease .8s forwards; pointer-ev
   100% { opacity: 1; transform: none; }
 }
 @keyframes flowIn {
-  to { opacity: 1; filter: none; transform: none; }
+  60% { color: rgba(255, 255, 255, .85); }
+  to { opacity: 1; color: #fff; text-shadow: 0 4px 24px rgba(120, 40, 120, .35); transform: none; }
 }
 @keyframes flash { 0% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes candleOn { from { opacity: .15; } to { opacity: 1; } }
